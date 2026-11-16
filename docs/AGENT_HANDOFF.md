@@ -13,7 +13,7 @@ Skeleton + `docs/campaign-contract.md` are on **`main`** (public repo). Use this
 | --- | --- |
 | Repo | `https://github.com/Macmus40/fonsterfaktor-campaigns.git` |
 | Base branch | `main` |
-| Current `main` SHA | `ba17af6540db722b9f12e20b9bb06f99fcfaf9b0` |
+| Current `main` SHA | `7a028c552c0d0ea1cf69c0f6bb8f5e7b9749bcf5` |
 | Contract first landed | `f5a3088bea6c1d14ba010983da3396756f834f29` |
 | Contract path | `docs/campaign-contract.md` |
 
