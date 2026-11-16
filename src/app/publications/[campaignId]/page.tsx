@@ -26,12 +26,18 @@ export default async function CampaignPublicationsPage({ params }: Props) {
   const variants: ContentVariant[] = bundle.variants.map((v) => ({
     id: v.id,
     campaignId: v.campaignId,
+    materialId: v.materialId ?? null,
     locale: v.locale,
     channelHint: v.channelHint,
     headline: v.headline,
     body: v.body,
     cta: v.cta,
     label: v.label,
+    angle: (v.angle || "custom") as ContentVariant["angle"],
+    generationSource: (v.generationSource ||
+      "template") as ContentVariant["generationSource"],
+    extendedJson: v.extendedJson || "{}",
+    missingFieldsJson: v.missingFieldsJson || "[]",
     status: v.status as ContentVariant["status"],
     createdAt: v.createdAt,
     updatedAt: v.updatedAt,

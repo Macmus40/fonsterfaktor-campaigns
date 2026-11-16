@@ -11,6 +11,14 @@ export type MaterialKind = "image" | "video";
 
 export type ContentVariantStatus = "draft" | "approved" | "retired";
 
+export type ContentAngle = "price_custom" | "season_problem" | "custom";
+
+export type GenerationSource =
+  | "user_description"
+  | "material_analysis"
+  | "template"
+  | "local_model";
+
 export type PublicationStatus =
   | "draft"
   | "scheduled"
@@ -51,6 +59,16 @@ export type EventSource = "tagged_link" | "din_next";
 
 export type MeasurementSource = EventSource | "mixed";
 
+export interface CampaignContext {
+  season?: string | null;
+  holiday?: string | null;
+  weather?: string | null;
+  productFeatures?: string[];
+  priceText?: string | null;
+  deadlineText?: string | null;
+  configuratorCtaUrl?: string | null;
+}
+
 export interface Campaign {
   id: string;
   slug: string;
@@ -63,6 +81,8 @@ export interface Campaign {
   status: CampaignStatus;
   startsAt: string | null;
   endsAt: string | null;
+  contextJson: string | null;
+  planningReadyAt: string | null;
   isDemo: boolean;
   createdAt: string;
   updatedAt: string;
@@ -79,18 +99,43 @@ export interface Material {
   height: number | null;
   durationSec: number | null;
   sortOrder: number;
+  userDescription: string | null;
+  sceneNotes: string | null;
   createdAt: string;
 }
+
+export interface ImageExtendedContent {
+  kind: "image";
+  headline: string;
+  postText: string;
+  carouselCaptions: string[];
+  cta: string;
+}
+
+export interface VideoExtendedContent {
+  kind: "video";
+  opening: string;
+  overlaySequence: string[];
+  narration: string;
+  publicationDescription: string;
+}
+
+export type ExtendedContent = ImageExtendedContent | VideoExtendedContent;
 
 export interface ContentVariant {
   id: string;
   campaignId: string;
+  materialId: string | null;
   locale: string;
   channelHint: string | null;
   headline: string;
   body: string;
   cta: string | null;
   label: string;
+  angle: ContentAngle;
+  generationSource: GenerationSource;
+  extendedJson: string;
+  missingFieldsJson: string;
   status: ContentVariantStatus;
   createdAt: string;
   updatedAt: string;
@@ -230,4 +275,36 @@ export interface MetaChannelCapability {
   day1Priority: boolean;
   requirements: string[];
   notes: string;
+}
+
+export function parseCampaignContext(
+  raw: string | null | undefined,
+): CampaignContext {
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as CampaignContext;
+  } catch {
+    return {};
+  }
+}
+
+export function parseExtendedContent(
+  raw: string | null | undefined,
+): ExtendedContent | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as ExtendedContent;
+  } catch {
+    return null;
+  }
+}
+
+export function parseMissingFields(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as string[]) : [];
+  } catch {
+    return [];
+  }
 }

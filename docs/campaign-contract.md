@@ -18,6 +18,8 @@ Domain contract for the FönsterFaktor Campaigns internal panel. Sweden-market D
 | `status` | enum | `draft` \| `ready` \| `active` \| `paused` \| `archived` |
 | `startsAt` | datetime \| null | Planned / actual start |
 | `endsAt` | datetime \| null | Planned / actual end |
+| `contextJson` | JSON \| null | Creative context (season, holiday, weather, features, price…) |
+| `planningReadyAt` | datetime \| null | Set when handed off to planning (`status → ready`) |
 | `isDemo` | boolean | Demo seed vs real data |
 | `createdAt` / `updatedAt` | datetime | Audit |
 
@@ -38,23 +40,40 @@ Images and videos attached to a campaign.
 | `mimeType` | string \| null | |
 | `width` / `height` / `durationSec` | number \| null | Optional media metadata |
 | `sortOrder` | number | Display order |
+| `userDescription` | string \| null | Operator description of the material |
+| `sceneNotes` | string \| null | Optional scene-by-scene notes (especially video) |
 | `createdAt` | datetime | |
 
+### CampaignContext (on Campaign.contextJson)
+Optional creative context for Swedish generation. Missing commercial facts are requested in the UI or omitted from copy (never invented): `season`, `holiday`, `weather`, `productFeatures[]`, `priceText`, `deadlineText`, `configuratorCtaUrl`.
+
 ### ContentVariant
-Swedish text variants for ads / posts / landing copy.
+Swedish text variants for ads / posts / landing copy. Generate ≥2 angles per material. Draft vs approved must be visually distinct in the panel.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | string | PK |
 | `campaignId` | string | FK → Campaign |
+| `materialId` | string \| null | FK → Material |
 | `locale` | string | Default `sv-SE` |
 | `channelHint` | string \| null | e.g. `meta`, `google`, `email`, `organic` |
-| `headline` | string | |
-| `body` | string | |
+| `headline` | string | Flat summary (publications use this) |
+| `body` | string | Flat summary body |
 | `cta` | string \| null | Call to action |
 | `label` | string | Internal label (`A`, `B`, `long-form`) |
+| `angle` | enum | `price_custom` \| `season_problem` \| `custom` |
+| `generationSource` | enum | `user_description` \| `material_analysis` \| `template` \| `local_model` |
+| `extendedJson` | JSON | Image: headline/postText/carouselCaptions/cta. Video: opening/overlaySequence/narration/publicationDescription |
+| `missingFieldsJson` | JSON string[] | Facts omitted / requested |
 | `status` | enum | `draft` \| `approved` \| `retired` |
 | `createdAt` / `updatedAt` | datetime | |
+
+### Authoring flow (Agent 2)
+1. Product + goal (+ region / season / holiday / weather / features).
+2. Add photo or video (+ description / scene notes).
+3. Generate ≥2 Swedish proposals via **local templates** (no paid API); optional `LOCAL_LLM_URL`.
+4. Preview material beside copy; edit; approve.
+5. Mark campaign `ready` (`planningReadyAt`) for publications (Agent 3). Video texts are editable/copyable in v1 (not burned in).
 
 ### Publication
 A placement of a campaign on a channel. Status is **independent** of campaign status.

@@ -98,6 +98,15 @@ async function main() {
       status: fixture.campaign.status,
       startsAt: fixture.campaign.startsAt,
       endsAt: fixture.campaign.endsAt,
+      contextJson: JSON.stringify({
+        season: "vinter",
+        holiday: null,
+        weather: "kyla",
+        productFeatures: ["svart finish", "eget mått", "3-glas"],
+        priceText: null,
+        deadlineText: null,
+      }),
+      planningReadyAt: null,
       isDemo: true,
       createdAt: ts,
       updatedAt: ts,
@@ -120,6 +129,14 @@ async function main() {
         height: m.height ?? null,
         durationSec: m.durationSec ?? null,
         sortOrder: m.sortOrder ?? 0,
+        userDescription:
+          m.kind === "image"
+            ? "Svart skjutparti i modern fasad, stort glasparti."
+            : "Film som visar öppning av svart skjutparti.",
+        sceneNotes:
+          m.kind === "video"
+            ? "Scen 1: fasad. Scen 2: öppning. Scen 3: interiörljus."
+            : null,
         createdAt: ts,
       })
       .run();
@@ -133,12 +150,28 @@ async function main() {
       .values({
         id,
         campaignId,
+        materialId: materialIds[0] ?? null,
         locale: v.locale,
         channelHint: v.channelHint ?? null,
         headline: v.headline,
         body: v.body,
         cta: v.cta ?? null,
         label: v.label,
+        angle: v.label === "A" ? "price_custom" : "season_problem",
+        generationSource: "template",
+        extendedJson: JSON.stringify({
+          kind: "image",
+          headline: v.headline,
+          postText: v.body,
+          carouselCaptions: [
+            v.headline,
+            "Eget mått",
+            "Se pris",
+            v.cta ?? "Öppna konfiguratorn",
+          ],
+          cta: v.cta ?? "Öppna konfiguratorn",
+        }),
+        missingFieldsJson: JSON.stringify(["pris", "tidsfrist"]),
         status: v.status,
         createdAt: ts,
         updatedAt: ts,
