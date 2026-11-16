@@ -9,8 +9,10 @@
     "lint": "next lint",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "simulate:din-next": "tsx scripts/simulate-din-next.ts",
+    "acceptance:analytics": "tsx scripts/acceptance-analytics.ts",
     "test": "tsx --test tests/**/*.test.ts",
     "test:acceptance:publications": "tsx scripts/acceptance-publications.ts",
+    "test:acceptance:analytics": "tsx scripts/acceptance-analytics.ts",
     "db:path": "node -e \"console.log(require('path').join(process.cwd(),'data/campaigns.sqlite'))\""
   },
   "dependencies": {

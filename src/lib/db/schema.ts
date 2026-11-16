@@ -146,3 +146,23 @@ export const measurements = sqliteTable("measurements", {
   source: text("source").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
+
+/** Manual or API-imported platform reach / interactions / spend */
+export const platformStats = sqliteTable("platform_stats", {
+  id: text("id").primaryKey(),
+  campaignId: text("campaign_id")
+    .notNull()
+    .references(() => campaigns.id),
+  publicationId: text("publication_id"),
+  channel: text("channel").notNull(),
+  metric: text("metric").notNull(),
+  value: real("value").notNull().default(0),
+  currency: text("currency"),
+  periodStart: text("period_start"),
+  periodEnd: text("period_end"),
+  dataSource: text("data_source").notNull(),
+  verified: integer("verified", { mode: "boolean" }).notNull().default(false),
+  notes: text("notes"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});

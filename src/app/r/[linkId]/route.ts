@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { links } from "@/lib/db/schema";
+import { contentVariants, links, publications } from "@/lib/db/schema";
 import { ingestConversionEvent } from "@/lib/events/ingest";
+import { classifyUserAgent } from "@/lib/links/bots";
+import { buildRedirectDestination } from "@/lib/links/destination";
 
 export const runtime = "nodejs";
 
-/** Tagged app link redirect — source A attribution */
+/**
+ * Tagged publication link → konfigurator redirect (result source A).
+ * Records a human `click` (transition) or `link_preview` for known bots.
+ * Redirect counts are transitions — never presented as unique customers.
+ */
 export async function GET(
   request: Request,
   context: { params: Promise<{ linkId: string }> },
@@ -28,20 +34,50 @@ export async function GET(
     utm_term: url.searchParams.get("utm_term") ?? link.utmTerm,
   };
 
+  const userAgent = request.headers.get("user-agent");
+  const bot = classifyUserAgent(userAgent);
+  const eventType = bot.isBot ? "link_preview" : "click";
+
+  let variantLabel: string | null = null;
+  if (link.publicationId) {
+    const pub = db
+      .select()
+      .from(publications)
+      .where(eq(publications.id, link.publicationId))
+      .get();
+    if (pub?.contentVariantId) {
+      const variant = db
+        .select()
+        .from(contentVariants)
+        .where(eq(contentVariants.id, pub.contentVariantId))
+        .get();
+      variantLabel = variant?.label ?? null;
+    }
+  }
+
   ingestConversionEvent({
     source: "tagged_link",
-    eventType: "click",
+    eventType,
     linkId: link.id,
     campaignId: link.campaignId,
     publicationId: link.publicationId,
-    payload: { ...utm, userAgent: request.headers.get("user-agent") },
+    payload: {
+      ...utm,
+      userAgent,
+      bot: bot.isBot,
+      botKind: bot.kind,
+      matchedPattern: bot.matchedPattern,
+      metricSemantics: "transition_or_preview_not_unique_customers",
+    },
   });
 
-  const dest = new URL(link.destinationUrl);
-  for (const [k, v] of Object.entries(utm)) {
-    if (v) dest.searchParams.set(k, v);
-  }
-  dest.searchParams.set("ff_link_id", link.id);
+  const dest = buildRedirectDestination({
+    destinationUrl: link.destinationUrl,
+    linkId: link.id,
+    publicationId: link.publicationId,
+    contentVariantLabel: variantLabel,
+    utm,
+  });
 
-  return NextResponse.redirect(dest.toString(), 302);
+  return NextResponse.redirect(dest, 302);
 }
