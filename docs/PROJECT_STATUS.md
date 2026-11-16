@@ -256,4 +256,5 @@ Legenda: **działa** | **działa w trybie testowym** | **jest w kodzie, ale wyma
 - Branch: `audit/project-status`
 - Plik: [`docs/PROJECT_STATUS.md`](./PROJECT_STATUS.md)
 - Link: https://github.com/Macmus40/fonsterfaktor-campaigns/blob/audit/project-status/docs/PROJECT_STATUS.md
-- Potwierdzony tip po pushu: `git ls-remote origin refs/heads/audit/project-status` → na moment zamknięcia audytu `cca205c601c9e93e040726314d55555e409ae1c5` (ten commit tylko dopina SHA; treść raportu od `4c094953…`)
+- Pierwszy commit z raportem: `4c0949537b9bac30e50bc76ae3cf904d9b896512`
+- Tip brancha: `git ls-remote origin refs/heads/audit/project-status`
