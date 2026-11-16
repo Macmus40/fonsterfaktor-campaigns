@@ -253,8 +253,7 @@ Legenda: **działa** | **działa w trybie testowym** | **jest w kodzie, ale wyma
 
 ## Potwierdzenie push raportu
 
-*(uzupełniane po `git push`)*
-
 - Branch: `audit/project-status`
 - Plik: [`docs/PROJECT_STATUS.md`](./PROJECT_STATUS.md)
-- SHA tip na `origin`: _pending push_
+- Link: https://github.com/Macmus40/fonsterfaktor-campaigns/blob/audit/project-status/docs/PROJECT_STATUS.md
+- Potwierdzony tip `origin/audit/project-status`: `4c0949537b9bac30e50bc76ae3cf904d9b896512` (przed tą aktualizacją SHA; po commitcie z tym akapitem tip się przesunie)
