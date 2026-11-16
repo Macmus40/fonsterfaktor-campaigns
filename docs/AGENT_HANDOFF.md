@@ -7,12 +7,14 @@
 
 ## Contract commit (Agent 1 → agents 2–4)
 
-After Agent 1 lands the skeleton on `main`, the commit that contains `docs/campaign-contract.md` is the shared starting point.
+Skeleton + `docs/campaign-contract.md` are on **`main`** (public repo). Use this shared starting point:
 
 | Item | Value |
 | --- | --- |
 | Repo | `https://github.com/Macmus40/fonsterfaktor-campaigns.git` |
 | Base branch | `main` |
+| Current `main` SHA | `ba17af6540db722b9f12e20b9bb06f99fcfaf9b0` |
+| Contract first landed | `f5a3088bea6c1d14ba010983da3396756f834f29` |
 | Contract path | `docs/campaign-contract.md` |
 
 Agents 2–4 must create **separate worktrees** from that contract commit and push only to their own branches:
