@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { MaterialPreview } from "@/components/campaigns/MaterialPreview";
+import { MediaDropzone } from "@/components/campaigns/MediaDropzone";
+import { PostStudio } from "@/components/campaigns/PostStudio";
 import { CampaignStatusBadge } from "@/components/campaigns/StatusBadge";
-import { VariantEditor } from "@/components/campaigns/VariantEditor";
 import type { CampaignContext } from "@/lib/types";
 import { parseCampaignContext } from "@/lib/types";
 
@@ -60,7 +61,7 @@ const STEPS = [
   "Produkt & mål",
   "Material",
   "Beskrivning",
-  "Förslag",
+  "Skapa post",
   "Godkänn & planering",
 ] as const;
 
@@ -435,6 +436,23 @@ export function CampaignWorkspace({ initial }: { initial: Bundle }) {
       {step === 1 ? (
         <section className="space-y-4 rounded-lg border border-stone-200 bg-white p-5">
           <h3 className="font-medium">2. Lägg till foto eller film</h3>
+          <MediaDropzone
+            campaignId={bundle.campaign.id}
+            slides={bundle.materials.map((material) => ({
+              id: material.id,
+              kind: material.kind === "video" ? "video" : "image",
+              url: material.url,
+              title: material.title,
+            }))}
+            onError={setError}
+            onUploaded={async (material) => {
+              const refreshed = await fetch(
+                `/api/campaigns/${bundle.campaign.id}`,
+              ).then((response) => response.json());
+              await refreshFrom(refreshed);
+              setSelectedMaterialId(material.id);
+            }}
+          />
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -603,11 +621,19 @@ export function CampaignWorkspace({ initial }: { initial: Bundle }) {
       {step === 3 || step === 4 ? (
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="font-medium">
-              {step === 3
-                ? "4. Redigera förslag"
-                : "5. Godkänn & överlämna till planering"}
-            </h3>
+            <div>
+              <h3 className="font-medium">
+                {step === 3
+                  ? "4. Skapa posten"
+                  : "5. Godkänn & överlämna till planering"}
+              </h3>
+              {step === 3 ? (
+                <p className="mt-1 max-w-2xl text-sm text-stone-500">
+                  Dra foto eller film, skriv slogan och hashtags. Facebook,
+                  Instagram, Story och annons uppdateras samtidigt.
+                </p>
+              ) : null}
+            </div>
             {step === 3 ? (
               <button
                 type="button"
@@ -620,56 +646,43 @@ export function CampaignWorkspace({ initial }: { initial: Bundle }) {
             ) : null}
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-5">
-            <div className="lg:col-span-2">
-              {selectedMaterial ? (
-                <MaterialPreview
-                  kind={selectedMaterial.kind}
-                  url={selectedMaterial.url}
-                  title={selectedMaterial.title}
-                />
-              ) : (
-                <p className="text-sm text-stone-500">Inget material valt.</p>
-              )}
-              {bundle.materials.length > 1 ? (
-                <div className="mt-3 space-y-1">
-                  {bundle.materials.map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setSelectedMaterialId(m.id)}
-                      className={`block w-full rounded border px-2 py-1 text-left text-xs ${
-                        selectedMaterial?.id === m.id
-                          ? "border-cyan-600 bg-cyan-50"
-                          : "border-stone-200"
-                      }`}
-                    >
-                      {m.title}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
+          {bundle.materials.length > 1 ? (
+            <div className="flex flex-wrap gap-2">
+              {bundle.materials.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setSelectedMaterialId(m.id)}
+                  className={`rounded-full px-3 py-1 text-xs ring-1 ${
+                    selectedMaterial?.id === m.id
+                      ? "bg-teal-800 text-white ring-teal-800"
+                      : "bg-white text-stone-700 ring-stone-300"
+                  }`}
+                >
+                  {m.title}
+                </button>
+              ))}
             </div>
-            <div className="space-y-4 lg:col-span-3">
-              {variantsForMaterial.length === 0 ? (
-                <p className="rounded-md border border-dashed border-stone-300 bg-white p-4 text-sm text-stone-600">
-                  Inga varianter ännu. Gå till steg 3 och generera förslag.
-                </p>
-              ) : (
-                variantsForMaterial.map((v) => (
-                  <VariantEditor
-                    key={v.id}
-                    variant={v as never}
-                    campaignId={bundle.campaign.id}
-                    onSaved={(b) => refreshFrom(b as Bundle)}
-                  />
-                ))
-              )}
-            </div>
+          ) : null}
+
+          <div>
+            <PostStudio
+              key={selectedMaterial?.id ?? "none"}
+              campaignId={bundle.campaign.id}
+              product={bundle.campaign.product}
+              variants={variantsForMaterial as never}
+              materials={bundle.materials as never}
+              onSaved={(next) => refreshFrom(next as Bundle)}
+              onLibraryChange={async () => {
+                const refreshed = await fetch(
+                  `/api/campaigns/${bundle.campaign.id}`,
+                ).then((response) => response.json());
+                await refreshFrom(refreshed);
+              }}
+            />
           </div>
 
-          {step === 4 ||
-          bundle.contentVariants.some((v) => v.status === "approved") ? (
+          {step === 4 ? (
             <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-4">
               <p className="text-sm text-blue-950">
                 När minst en variant är godkänd kan kampanjen lämnas till

@@ -29,7 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-stone-50 text-stone-900`}
       >
         <header className="border-b border-stone-200 bg-white">
-          <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-stone-500">
                 FönsterFaktor
@@ -52,7 +52,7 @@ export default function RootLayout({
             </nav>
           </div>
         </header>
-        <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
+        <main className="mx-auto max-w-[1400px] px-6 py-8">{children}</main>
       </body>
     </html>
   );

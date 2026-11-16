@@ -63,7 +63,7 @@ Swedish text variants for ads / posts / landing copy. Generate ≥2 angles per m
 | `label` | string | Internal label (`A`, `B`, `long-form`) |
 | `angle` | enum | `price_custom` \| `season_problem` \| `custom` |
 | `generationSource` | enum | `user_description` \| `material_analysis` \| `template` \| `local_model` |
-| `extendedJson` | JSON | Image: headline/postText/carouselCaptions/cta. Video: opening/overlaySequence/narration/publicationDescription |
+| `extendedJson` | JSON | Image: headline/postText/carouselCaptions/cta. Video: opening/overlaySequence/narration/publicationDescription. Both may also include `slogan` (ad headline), `hashtags` (`#tag` strings) and `slideIds` (ordered material ids for the post carousel). Flat `headline`/`body` mirror the slogan and the caption with hashtags so publications stay in sync. |
 | `missingFieldsJson` | JSON string[] | Facts omitted / requested |
 | `status` | enum | `draft` \| `approved` \| `retired` |
 | `createdAt` / `updatedAt` | datetime | |
