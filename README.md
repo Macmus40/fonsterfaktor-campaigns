@@ -1,58 +1,41 @@
 # FönsterFaktor Campaigns
 
-Internal panel to create, publish, and analyze Drutex product campaigns sold in Sweden.
+Internal panel for Drutex campaigns in Sweden. **Next.js on Vercel** + separate **Supabase** project (Postgres, Auth, private Storage). DIN Next is an external konfigurator only.
 
-## Publications (agent 3)
-
-- UI: `/publications` and `/publications/[campaignId]` — calendar in **Europe/Stockholm**
-- Modes: `manual` (copy package + save post URL), `test` (simulate success/failure/ambiguous), `connected` (Meta Graph API, server tokens only)
-- Ambiguous sends require `POST /api/publications/:id/reconcile` before retry
-- Channel status: `GET /api/meta/status` — Facebook Page day-1; Instagram prepared but out of day-1 test scope without a professional IG account
-- Acceptance: `npm run test:acceptance:publications` · unit: `npm test` DIN Next is an external traffic destination only — this repository does not modify the konfigurator.
-
-## Stack
-
-- Next.js (App Router) + TypeScript
-- SQLite via `better-sqlite3` + Drizzle (`data/campaigns.sqlite`)
-- No Meta accounts, no paid APIs required for local use
+GitHub: https://github.com/Macmus40/fonsterfaktor-campaigns
 
 ## Quick start
 
+See [`docs/local-setup.md`](docs/local-setup.md) and [`docs/deploy-vercel.md`](docs/deploy-vercel.md).
+
 ```bash
 npm install
-npm run seed:demo
+cp .env.example .env.local   # fill Supabase + secrets
+# apply supabase/migrations/20261116120000_init.sql in Supabase SQL editor
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-### DIN Next simulator
-
-With the dev server running:
+Foundation probe (reports missing Supabase config explicitly):
 
 ```bash
-npm run simulate:din-next
+npm run probe:foundation
 ```
 
-Or `POST /api/simulate/din-next` with optional JSON `{ "campaignSlug": "svart-skjutparti" }`.
+Scheduled publications (panel can be closed):
 
-## Publications (agent 3)
-
-- UI: `/publications` and `/publications/[campaignId]` — calendar in **Europe/Stockholm**
-- Modes: `manual` (copy package + save post URL), `test` (simulate success/failure/ambiguous), `connected` (Meta Graph API, server tokens only)
-- Ambiguous sends require `POST /api/publications/:id/reconcile` before retry
-- Channel status: `GET /api/meta/status` — Facebook Page day-1; Instagram prepared but out of day-1 test scope without a professional IG account
-- Acceptance: `npm run test:acceptance:publications` · unit: `npm test`
-- Meta notes: [`docs/meta-publishing.md`](docs/meta-publishing.md)
+```bash
+PUBLISH_JOB_MODE=simulate npm run jobs:publish-due
+```
 
 ## Docs
 
-- [`docs/campaign-contract.md`](docs/campaign-contract.md) — domain models
-- [`docs/din-next-integration.md`](docs/din-next-integration.md) — result source B
-- [`docs/agent-ownership.md`](docs/agent-ownership.md) — parallel agent file ownership
-- [`docs/meta-publishing.md`](docs/meta-publishing.md) — Facebook Page + Instagram API scope
+- [`docs/campaign-contract.md`](docs/campaign-contract.md) — domain + auth matrix + scheduler
+- [`docs/local-setup.md`](docs/local-setup.md) — local run
+- [`docs/deploy-vercel.md`](docs/deploy-vercel.md) — deployment prep (owner decides on paid hosting)
+- [`docs/SQLITE_PROTOTYPE.md`](docs/SQLITE_PROTOTYPE.md) — SQLite history note
+- [`docs/din-next-integration.md`](docs/din-next-integration.md)
+- [`docs/meta-publishing.md`](docs/meta-publishing.md)
 
-## Demo vs real
+## Visibility
 
-- Demo fixtures: `seed/demo/` (`isDemo = true`)
-- Runtime DB: `data/campaigns.sqlite` (gitignored; starts empty until seed/migrate)
+Repository stays **public**. Never commit `.env`, tokens, local DB, private media, or client PII.

@@ -1,175 +1,157 @@
 # Campaign contract
 
-Domain contract for the FönsterFaktor Campaigns internal panel. Sweden-market Drutex product campaigns. DIN Next is an external traffic destination only.
+Domain + platform contract for **FönsterFaktor Campaigns** — internal panel for Sweden-market Drutex product campaigns.
+
+DIN Next / the product konfigurator is an **external** traffic and conversion destination. This app does not store inquiry contact PII coming from DIN Next.
+
+## Platform (target)
+
+| Piece | Choice |
+| --- | --- |
+| App | Separate **Next.js** (App Router) project |
+| Hosting | **Vercel** (owner decides when to enable paid hosting) |
+| Database | **Supabase Postgres** (durable campaigns, publications, results, direct contacts) |
+| Auth | **Supabase Auth** — panel operators must be signed in |
+| Media | **Supabase Storage** private bucket `campaign-media` — direct client uploads with signed URLs |
+| Code & migrations | GitHub [`Macmus40/fonsterfaktor-campaigns`](https://github.com/Macmus40/fonsterfaktor-campaigns) |
+
+### SQLite prototype (archived in git history)
+
+Local SQLite (`data/campaigns.sqlite` via `better-sqlite3`) was the first durable store. That prototype remains reachable in git history (e.g. tip before Supabase foundation on `main`). Runtime default becomes Supabase; `STORAGE_DRIVER=sqlite` may be used only for offline module work until migrations are applied. Modules must talk to the **repository layer**, not to a driver directly.
 
 ## Core models
 
 ### Campaign
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string (uuid) | Primary key |
-| `slug` | string | Stable short id for links |
-| `name` | string | Display name (e.g. “Svart skjutparti”) |
-| `product` | string | Drutex product / product family |
-| `goal` | string | Campaign goal (awareness, leads, price views, …) |
-| `destinationUrl` | string | Target URL (usually DIN Next configurator) |
-| `market` | string | Market code, default `SE` |
-| `region` | string \| null | Optional region within market |
+| `id` | uuid | PK |
+| `slug` | text | Stable short id for links |
+| `name` | text | Display name (e.g. “Svart skjutparti”) |
+| `product` | text | Drutex product / family |
+| `goal` | text | Campaign goal |
+| `destination_url` | text | Usually DIN Next konfigurator URL (+ product params) |
+| `market` | text | Default `SE` |
+| `region` | text \| null | |
 | `status` | enum | `draft` \| `ready` \| `active` \| `paused` \| `archived` |
-| `startsAt` | datetime \| null | Planned / actual start |
-| `endsAt` | datetime \| null | Planned / actual end |
-| `isDemo` | boolean | Demo seed vs real data |
-| `createdAt` / `updatedAt` | datetime | Audit |
+| `starts_at` / `ends_at` | timestamptz \| null | |
+| `is_demo` | boolean | Demo seed vs real |
+| `created_at` / `updated_at` | timestamptz | |
 
-**Cardinality:** one campaign → many materials, many content variants, many publications, many links, many conversion events, many measurements.
+**Cardinality:** one campaign → many materials, content variants, publications, links, conversion events, measurements, platform stats.
 
-**Independence:** campaign `status` is independent of every publication `status`.
+**Independence:** campaign `status` ⊥ publication `status`.
 
 ### Material
-Images and videos attached to a campaign.
-
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | PK |
-| `campaignId` | string | FK → Campaign |
+| `id` | uuid | PK |
+| `campaign_id` | uuid | FK |
 | `kind` | enum | `image` \| `video` |
-| `title` | string | |
-| `url` | string | Local path or absolute URL |
-| `mimeType` | string \| null | |
-| `width` / `height` / `durationSec` | number \| null | Optional media metadata |
-| `sortOrder` | number | Display order |
-| `createdAt` | datetime | |
+| `title` | text | |
+| `storage_path` | text \| null | Path inside private bucket (preferred) |
+| `url` | text \| null | Legacy/public URL or signed-URL cache hint — not a long-lived secret |
+| `mime_type` | text \| null | |
+| `width` / `height` / `duration_sec` | number \| null | |
+| `sort_order` | int | |
+| `created_at` | timestamptz | |
+| `created_by` | uuid \| null | Auth user who uploaded |
 
 ### ContentVariant
-Swedish text variants for ads / posts / landing copy.
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | string | PK |
-| `campaignId` | string | FK → Campaign |
-| `locale` | string | Default `sv-SE` |
-| `channelHint` | string \| null | e.g. `meta`, `google`, `email`, `organic` |
-| `headline` | string | |
-| `body` | string | |
-| `cta` | string \| null | Call to action |
-| `label` | string | Internal label (`A`, `B`, `long-form`) |
-| `status` | enum | `draft` \| `approved` \| `retired` |
-| `createdAt` / `updatedAt` | datetime | |
+Swedish text variants (`locale` default `sv-SE`). Status: `draft` \| `approved` \| `retired`.
 
 ### Publication
-A placement of a campaign on a channel. Status is **independent** of campaign status.
+Channel placement; status independent of campaign.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | PK |
-| `campaignId` | string | FK → Campaign |
-| `channel` | string | Preferred day-1: `facebook_page`; also `instagram`, plus legacy hints (`meta`, `manual`, …) |
-| `externalId` | string \| null | Channel-side post id when known |
-| `contentVariantId` | string \| null | FK → ContentVariant — **must be `approved` before send** |
-| `materialIds` | JSON string[] | Materials used in this publication |
+| `id` | uuid | PK |
+| `campaign_id` | uuid | FK |
+| `channel` | text | Day-1: `facebook_page`; also `instagram`, … |
+| `content_variant_id` | uuid \| null | Must be `approved` before send |
+| `material_ids` | uuid[] | |
 | `status` | enum | `draft` \| `scheduled` \| `publishing` \| `published` \| `paused` \| `ended` \| `failed` \| `ambiguous` |
-| `scheduledAt` | datetime \| null | Stored UTC; UI calendar uses **Europe/Stockholm** |
-| `publishMode` | enum | `manual` \| `test` \| `connected` |
-| `confirmationKind` | enum \| null | `manual` \| `test` \| `platform` — how publication was confirmed |
-| `postUrl` | string \| null | Public post URL when known |
-| `campaignLinkId` | string \| null | FK → Link minted for this publication |
-| `lastAttemptId` | string \| null | FK → PublicationAttempt |
-| `publishedAt` / `endedAt` | datetime \| null | |
-| `createdAt` / `updatedAt` | datetime | |
+| `scheduled_at` | timestamptz \| null | UTC; UI = **Europe/Stockholm** |
+| `publish_mode` | enum | `manual` \| `test` \| `connected` |
+| `confirmation_kind` | enum \| null | `manual` \| `test` \| `platform` |
+| `post_url` / `external_id` | text \| null | |
+| `campaign_link_id` | uuid \| null | Tagged link for this publication |
+| `last_attempt_id` | uuid \| null | |
+| `published_at` / `ended_at` | timestamptz \| null | |
 
 ### PublicationAttempt
-Per-send history for a publication (success, failure, ambiguous).
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | string | PK |
-| `publicationId` | string | FK → Publication |
-| `mode` | enum | `manual` \| `test` \| `connected` |
-| `outcome` | enum | `success` \| `failure` \| `ambiguous` \| `pending` \| `skipped` |
-| `startedAt` / `finishedAt` | datetime | |
-| `errorMessage` | string \| null | |
-| `responseJson` | JSON | Audit payload (no secrets) |
-| `platformPostId` / `platformPostUrl` | string \| null | |
-| `idempotencyKey` | string | Unique — retries reuse or mint new keys intentionally |
-| `reconciledFromAttemptId` | string \| null | Set when resolving an ambiguous attempt |
-
-**Ambiguous rule:** if the last outcome is `ambiguous`, the next action must be **reconcile** (establish platform state) before a new send. Reconcile either marks the publication `published` (post found — do not resend) or `failed` (safe to retry).
-
-### Publish modes
-1. **manual** — operator copies text + campaign link, downloads materials, posts on the channel, then saves `postUrl` (`confirmationKind = manual`).
-2. **test** — local simulator can force success / failure / ambiguous (no Meta network calls).
-3. **connected** — server-side official Meta Graph API. Tokens never leave the server. Live sends only when `META_ALLOW_LIVE_SENDS=true` against the labelled test account. See `docs/meta-publishing.md`.
-
-### Analytics handoff
-When a post id/URL is registered (manual save, test success, or platform confirm), the publishing module writes an `analytics_handoffs` row for agent 4 (`GET /api/analytics/handoffs`).
+Per-send history (`success` \| `failure` \| `ambiguous` \| `pending` \| `skipped`) with unique `idempotency_key`. Ambiguous → reconcile before retry.
 
 ### Link
-Tagged outbound links used for source A (inbound attribution).
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | string | PK (= campaign link id in URLs) |
-| `campaignId` | string | FK → Campaign |
-| `publicationId` | string \| null | FK → Publication |
-| `destinationUrl` | string | Final redirect / destination |
-| `utmSource` / `utmMedium` / `utmCampaign` / `utmContent` / `utmTerm` | string \| null | |
-| `label` | string \| null | Human label |
-| `createdAt` | datetime | |
-
-Tagged app URL shape (local):
-
-```text
-/r/{linkId}?utm_source=…&utm_medium=…&utm_campaign=…
-```
+Tagged outbound `/r/{linkId}` (source A). Preserves product-opening query params on redirect. Human hits = `click` (transitions, **not** unique customers); known bots = `link_preview`.
 
 ### ConversionEvent
-Atomic result events from either result source.
+Atomic results from source A (`tagged_link`) or B (`din_next`). Deduped by `idempotency_key`.
+
+### DinNextInquiry (result of inquiry_submitted)
+Stores **identifier + attribution + status only**. Contact PII stays in DIN Next.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | PK |
-| `campaignId` | string \| null | Resolved campaign when known |
-| `linkId` | string \| null | Present for source A |
-| `publicationId` | string \| null | Optional |
-| `source` | enum | `tagged_link` \| `din_next` |
-| `eventType` | string | e.g. `click`, `price_view`, `inquiry_submitted` |
-| `occurredAt` | datetime | Event time |
-| `payload` | JSON | Source-specific fields |
-| `idempotencyKey` | string \| null | Dedup key |
-| `createdAt` | datetime | Ingest time |
+| `id` | uuid | PK (this app) |
+| `external_inquiry_id` | text | ID from DIN Next |
+| `campaign_id` / `link_id` / `publication_id` | uuid \| null | Attribution |
+| `status` | enum | `received` \| `synced` \| `closed` \| `error` |
+| `occurred_at` | timestamptz | |
+| `payload` | jsonb | Non-PII metadata only (product, price, …) |
+| `idempotency_key` | text | Unique |
 
-### Measurement
-Aggregated / derived metrics for a campaign (and optionally a publication).
+### DirectContact
+Contacts captured **inside this panel** (not DIN Next inquiries).
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | PK |
-| `campaignId` | string | FK → Campaign |
-| `publicationId` | string \| null | Optional scope |
-| `metric` | string | e.g. `clicks`, `price_views`, `inquiries` |
-| `value` | number | |
-| `windowStart` / `windowEnd` | datetime \| null | Aggregation window |
-| `source` | enum | `tagged_link` \| `din_next` \| `mixed` |
-| `updatedAt` | datetime | |
+| `id` | uuid | PK |
+| `campaign_id` | uuid \| null | Optional |
+| `email` / `phone` / `name` | text \| null | Panel-sourced only |
+| `source` | text | e.g. `manual_panel` |
+| `notes` | text \| null | |
+| `created_by` | uuid \| null | Auth user |
+| `created_at` | timestamptz | |
 
-## Result sources (independent)
+### PlatformStat / Measurement
+Reach, interactions, spend (manual or verified API) and rolled-up metrics. Missing DIN Next events → UI label **„brak pomiaru konwersji”**.
 
-### A — Tagged app links (UTM / campaign link ids)
-- This app issues `Link` records and `/r/{linkId}` redirects.
-- Inbound clicks (and optional client beacons) create `ConversionEvent` with `source = tagged_link`.
-- Does **not** require Meta accounts or paid APIs.
+## Endpoint access matrix
 
-### B — DIN Next reported events
-- DIN Next (or a local simulator) POSTs `price_view` and `inquiry_submitted` (and related) events to this app.
-- Creates `ConversionEvent` with `source = din_next`.
-- See `docs/din-next-integration.md`.
+| Surface | Auth | Notes |
+| --- | --- | --- |
+| `GET /r/{linkId}` | **Public** | Redirect + transition/preview event |
+| `POST /api/events/inbound` | **Public** (optional rate-limit) | Source A beacons |
+| `POST /api/events/din-next` | **Shared secret** | `X-FF-Ingest-Secret` or `Authorization: Bearer` = `DIN_NEXT_INGEST_SECRET` |
+| `POST /api/simulate/din-next` | **Logged-in** (or secret in local/dev) | Simulator |
+| `GET/POST /api/jobs/publish-due` | **Cron secret** | `Authorization: Bearer CRON_SECRET` or `x-cron-secret` |
+| `/login` | Public | Supabase Auth email magic link / password |
+| `/`, `/publications/**`, `/analytics/**`, `/campaigns/**` | **Logged-in** | Panel UI |
+| `GET/POST /api/campaigns/**`, `/api/publications/**`, `/api/links` (mutations), `/api/media/**`, `/api/contacts/**` | **Logged-in** | Service role only on server after session check |
+| `GET /api/meta/status` | **Logged-in** | |
 
-Sources A and B must remain independently ingestible and reportable. Measurements may later combine them (`source = mixed`) without coupling ingest paths.
+### DIN Next event authentication
+1. Prefer shared secret header (`DIN_NEXT_INGEST_SECRET`).
+2. Strip contact fields from payload on ingest.
+3. For `inquiry_submitted`, upsert `din_next_inquiries` by `external_inquiry_id` / idempotency key; never store email/phone/name from DIN Next.
 
-## Demo vs real data
-- Demo rows set `Campaign.isDemo = true` and live under `seed/demo/`.
-- Production DB file: `data/campaigns.sqlite` (created empty on first run; never commit demo as “real”).
-- Seed script only writes demo campaigns unless explicitly overridden.
+## Scheduled publications (panel closed)
 
-## Status independence rule
-Updating a publication from `draft` → `published` must not change campaign status. Pausing a campaign must not auto-end publications unless a future product rule explicitly says so (out of scope for skeleton).
+1. Operator sets `publications.scheduled_at` + `status = scheduled` (+ mode).
+2. Job **`publish-due`** selects rows where `scheduled_at <= now()` and `status = scheduled`, marks `publishing`, runs the same send path as the panel (`test` → simulate; `connected` → Meta; `manual` → skip auto-send, leave reminder attempt `skipped`).
+3. Attempts + final status are written to Postgres so the job is safe if the browser is closed.
+4. **Production:** Vercel Cron hits `/api/jobs/publish-due` with `CRON_SECRET`.
+5. **Local v1:** `npm run jobs:publish-due` runs the identical function; `PUBLISH_JOB_MODE=simulate` forces test-mode outcomes without Meta.
+
+## Result sources
+
+- **A — Tagged links:** `/r/{linkId}` → `conversion_events` (`tagged_link`).
+- **B — DIN Next:** `price_view` / `inquiry_submitted` → `conversion_events` (+ `din_next_inquiries` for inquiries).
+
+## Demo vs real
+- Demo rows: `is_demo = true`, fixtures under `seed/demo/`.
+- Never commit real secrets; `.env.example` lists names only.
+- Production data lives in the linked Supabase project.
+
+## Status independence
+Updating a publication must not auto-change campaign status (and vice versa) unless a future product rule says so.

@@ -16,7 +16,10 @@ Neither source blocks the other. Analytics may join them later by `campaignId` /
 ```http
 POST /api/events/din-next
 Content-Type: application/json
+X-FF-Ingest-Secret: <DIN_NEXT_INGEST_SECRET>
 ```
+
+When `DIN_NEXT_INGEST_SECRET` is set, the header (or `Authorization: Bearer`) is required. Contact fields in `payload` are stripped. `inquiry_submitted` also upserts `din_next_inquiries` (id + attribution + status only).
 
 ### Payload (minimal)
 
