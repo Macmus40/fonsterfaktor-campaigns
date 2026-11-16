@@ -152,6 +152,26 @@ Aggregated / derived metrics for a campaign (and optionally a publication).
 | `source` | enum | `tagged_link` \| `din_next` \| `mixed` |
 | `updatedAt` | datetime | |
 
+### PlatformStat
+Reach / interactions / spend from the channel (manual entry first; verified API later).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | PK |
+| `campaignId` | string | FK → Campaign |
+| `publicationId` | string \| null | Optional scope |
+| `channel` | string | e.g. `meta`, `facebook_page` |
+| `metric` | string | `reach` \| `impressions` \| `interactions` \| `spend` \| `platform_clicks` |
+| `value` | number | |
+| `currency` | string \| null | For spend, default `SEK` |
+| `periodStart` / `periodEnd` | datetime \| null | |
+| `dataSource` | enum | `manual` \| `meta_api` \| `google_ads_api` \| `other_api` |
+| `verified` | boolean | True only for explicitly verified API pulls |
+| `notes` | string \| null | |
+| `createdAt` / `updatedAt` | datetime | |
+
+**Semantics:** tagged-link `click` events are **transitions** (redirects), never unique customers. Known preview bots record `link_preview` instead. Missing DIN Next events → report status **„brak pomiaru konwersji”**.
+
 ## Result sources (independent)
 
 ### A — Tagged app links (UTM / campaign link ids)

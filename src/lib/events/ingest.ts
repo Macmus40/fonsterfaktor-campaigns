@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { campaigns, conversionEvents } from "@/lib/db/schema";
+import { campaigns, conversionEvents, links } from "@/lib/db/schema";
+import { stripContactFields } from "@/lib/events/sanitize";
 import { newId, nowIso } from "@/lib/id";
 import type { DinNextEventPayload, EventSource } from "@/lib/types";
 
@@ -33,6 +34,17 @@ export function resolveCampaignId(opts: {
   return null;
 }
 
+function resolvePublicationFromLink(linkId?: string | null) {
+  if (!linkId) return null;
+  const db = getDb();
+  const link = db.select().from(links).where(eq(links.id, linkId)).get();
+  return link?.publicationId ?? null;
+}
+
+/**
+ * Insert a conversion event. Replayed `idempotencyKey` returns the existing
+ * row without double-counting.
+ */
 export function ingestConversionEvent(input: IngestInput) {
   const db = getDb();
 
@@ -52,27 +64,52 @@ export function ingestConversionEvent(input: IngestInput) {
     campaignSlug: input.campaignSlug,
   });
 
+  const publicationId =
+    input.publicationId ?? resolvePublicationFromLink(input.linkId);
+
+  const safePayload = stripContactFields(input.payload);
+
   const id = newId("evt");
   const createdAt = nowIso();
-  db.insert(conversionEvents)
-    .values({
-      id,
-      campaignId,
-      linkId: input.linkId ?? null,
-      publicationId: input.publicationId ?? null,
-      source: input.source,
-      eventType: input.eventType,
-      occurredAt: input.occurredAt ?? createdAt,
-      payloadJson: JSON.stringify(input.payload ?? {}),
-      idempotencyKey: input.idempotencyKey ?? null,
-      createdAt,
-    })
-    .run();
+
+  try {
+    db.insert(conversionEvents)
+      .values({
+        id,
+        campaignId,
+        linkId: input.linkId ?? null,
+        publicationId,
+        source: input.source,
+        eventType: input.eventType,
+        occurredAt: input.occurredAt ?? createdAt,
+        payloadJson: JSON.stringify(safePayload),
+        idempotencyKey: input.idempotencyKey ?? null,
+        createdAt,
+      })
+      .run();
+  } catch (err) {
+    if (input.idempotencyKey) {
+      const existing = db
+        .select()
+        .from(conversionEvents)
+        .where(eq(conversionEvents.idempotencyKey, input.idempotencyKey))
+        .get();
+      if (existing) {
+        return { eventId: existing.id, deduped: true as const };
+      }
+    }
+    throw err;
+  }
 
   return { eventId: id, deduped: false as const };
 }
 
 export function ingestDinNextEvent(body: DinNextEventPayload) {
+  const allowed = new Set(["price_view", "inquiry_submitted"]);
+  if (!allowed.has(body.eventType)) {
+    throw new Error(`unsupported_event_type:${body.eventType}`);
+  }
+
   return ingestConversionEvent({
     source: "din_next",
     eventType: body.eventType,
@@ -81,7 +118,12 @@ export function ingestDinNextEvent(body: DinNextEventPayload) {
     campaignSlug: body.campaignSlug,
     linkId: body.linkId,
     publicationId: body.publicationId,
-    payload: body.payload,
+    payload: {
+      ...stripContactFields(body.payload),
+      ...(body.contentVariantId
+        ? { contentVariantId: body.contentVariantId }
+        : {}),
+    },
     idempotencyKey: body.idempotencyKey,
   });
 }

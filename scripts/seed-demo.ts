@@ -1,6 +1,8 @@
 /**
  * Seeds demo data only (isDemo=true). Production DB path stays otherwise empty.
  * Usage: npm run seed:demo
+ *
+ * Two published posts with separate tagged links (analytics acceptance).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -48,15 +50,22 @@ type DemoFixture = {
     cta?: string;
     status: string;
   }>;
-  publication: { channel: string; status: string };
-  link: {
-    label: string;
-    utmSource?: string;
-    utmMedium?: string;
-    utmCampaign?: string;
-    utmContent?: string;
-    utmTerm?: string;
-  };
+  publications: Array<{
+    channel: string;
+    status: string;
+    variantLabel: string;
+    materialIndex?: number;
+    label?: string;
+    publishMode?: string;
+    link: {
+      label: string;
+      utmSource?: string;
+      utmMedium?: string;
+      utmCampaign?: string;
+      utmContent?: string;
+      utmTerm?: string;
+    };
+  }>;
 };
 
 async function main() {
@@ -81,6 +90,14 @@ async function main() {
     console.log(
       `Demo campaign already present: ${existing.slug} (${existing.id})`,
     );
+    const existingLinks = db
+      .select()
+      .from(links)
+      .where(eq(links.campaignId, existing.id))
+      .all();
+    for (const l of existingLinks) {
+      console.log(`  tagged path=/r/${l.id} (${l.label})`);
+    }
     return;
   }
 
@@ -125,10 +142,10 @@ async function main() {
       .run();
   }
 
-  let primaryVariantId: string | null = null;
+  const variantByLabel = new Map<string, string>();
   for (const v of fixture.contentVariants) {
     const id = newId("cv");
-    if (!primaryVariantId) primaryVariantId = id;
+    variantByLabel.set(v.label, id);
     db.insert(contentVariants)
       .values({
         id,
@@ -146,50 +163,61 @@ async function main() {
       .run();
   }
 
-  const publicationId = newId("pub");
-  const linkId = newId("lnk");
-  db.insert(publications)
-    .values({
-      id: publicationId,
-      campaignId,
-      channel: fixture.publication.channel,
-      externalId: null,
-      contentVariantId: primaryVariantId,
-      materialIdsJson: JSON.stringify(materialIds),
-      status: fixture.publication.status,
-      scheduledAt: null,
-      publishMode: "manual",
-      confirmationKind: null,
-      postUrl: null,
-      campaignLinkId: linkId,
-      lastAttemptId: null,
-      publishedAt: null,
-      endedAt: null,
-      createdAt: ts,
-      updatedAt: ts,
-    })
-    .run();
-
-  db.insert(links)
-    .values({
-      id: linkId,
-      campaignId,
-      publicationId,
-      destinationUrl: fixture.campaign.destinationUrl,
-      utmSource: fixture.link.utmSource ?? null,
-      utmMedium: fixture.link.utmMedium ?? null,
-      utmCampaign: fixture.link.utmCampaign ?? null,
-      utmContent: fixture.link.utmContent ?? null,
-      utmTerm: fixture.link.utmTerm ?? null,
-      label: fixture.link.label,
-      createdAt: ts,
-    })
-    .run();
-
   console.log("Seeded demo campaign Svart skjutparti");
   console.log(`  campaignId=${campaignId}`);
-  console.log(`  linkId=${linkId}`);
-  console.log(`  tagged path=/r/${linkId}`);
+
+  for (const pub of fixture.publications) {
+    const publicationId = newId("pub");
+    const linkId = newId("lnk");
+    const variantId = variantByLabel.get(pub.variantLabel) ?? null;
+    const matId =
+      typeof pub.materialIndex === "number"
+        ? materialIds[pub.materialIndex]
+        : materialIds[0];
+
+    db.insert(publications)
+      .values({
+        id: publicationId,
+        campaignId,
+        channel: pub.channel,
+        externalId: null,
+        contentVariantId: variantId,
+        materialIdsJson: JSON.stringify(matId ? [matId] : []),
+        status: pub.status,
+        scheduledAt: ts,
+        publishMode: pub.publishMode ?? "manual",
+        confirmationKind: null,
+        postUrl: null,
+        campaignLinkId: linkId,
+        lastAttemptId: null,
+        publishedAt: ts,
+        endedAt: null,
+        createdAt: ts,
+        updatedAt: ts,
+      })
+      .run();
+
+    db.insert(links)
+      .values({
+        id: linkId,
+        campaignId,
+        publicationId,
+        destinationUrl: fixture.campaign.destinationUrl,
+        utmSource: pub.link.utmSource ?? null,
+        utmMedium: pub.link.utmMedium ?? null,
+        utmCampaign: pub.link.utmCampaign ?? null,
+        utmContent: pub.link.utmContent ?? null,
+        utmTerm: pub.link.utmTerm ?? null,
+        label: pub.link.label,
+        createdAt: ts,
+      })
+      .run();
+
+    console.log(
+      `  publication ${pub.label ?? pub.variantLabel} (${publicationId}) → /r/${linkId}`,
+    );
+  }
+
   console.log(`  db=${path.join(process.cwd(), "data/campaigns.sqlite")}`);
 }
 

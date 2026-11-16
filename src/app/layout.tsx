@@ -43,6 +43,9 @@ export default function RootLayout({
               <a className="hover:text-stone-900" href="/publications">
                 Publikacje
               </a>
+              <a className="hover:text-stone-900" href="/analytics">
+                Analityka
+              </a>
               <a className="hover:text-stone-900" href="/docs-hint">
                 Kontrakt
               </a>

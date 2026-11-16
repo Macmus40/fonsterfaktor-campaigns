@@ -182,8 +182,57 @@ export interface DinNextEventPayload {
   campaignId?: string;
   linkId?: string;
   publicationId?: string;
+  contentVariantId?: string;
   idempotencyKey?: string;
   payload?: Record<string, unknown>;
+}
+
+/** Platform metrics entered manually or pulled from a verified API */
+export type PlatformStatMetric =
+  | "reach"
+  | "impressions"
+  | "interactions"
+  | "spend"
+  | "platform_clicks";
+
+export type PlatformDataSource =
+  | "manual"
+  | "meta_api"
+  | "google_ads_api"
+  | "other_api";
+
+export interface PlatformStat {
+  id: string;
+  campaignId: string;
+  publicationId: string | null;
+  channel: string;
+  metric: PlatformStatMetric | string;
+  value: number;
+  currency: string | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+  dataSource: PlatformDataSource | string;
+  verified: boolean;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ConversionMeasurementStatus =
+  | "ok"
+  | "brak_pomiaru_konwersji";
+
+/** Funnel counters used in reports — never treat redirects as unique customers */
+export interface FunnelCounters {
+  platformReach: number;
+  platformInteractions: number;
+  platformSpend: number;
+  /** Human transitions via tagged links (bots/previews excluded) */
+  transitions: number;
+  /** Known link-preview / bot hits — shown separately, not as customers */
+  linkPreviews: number;
+  priceViews: number;
+  inquiries: number;
 }
 
 /** Package an operator copies when publishing manually. */

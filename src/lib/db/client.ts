@@ -143,6 +143,27 @@ CREATE TABLE IF NOT EXISTS measurements (
   source TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS platform_stats (
+  id TEXT PRIMARY KEY,
+  campaign_id TEXT NOT NULL REFERENCES campaigns(id),
+  publication_id TEXT,
+  channel TEXT NOT NULL,
+  metric TEXT NOT NULL,
+  value REAL NOT NULL DEFAULT 0,
+  currency TEXT,
+  period_start TEXT,
+  period_end TEXT,
+  data_source TEXT NOT NULL,
+  verified INTEGER NOT NULL DEFAULT 0,
+  notes TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_conversion_events_idempotency
+  ON conversion_events(idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
 `;
 
 /** Additive migrations for DBs created by the skeleton before agent 3 columns. */
