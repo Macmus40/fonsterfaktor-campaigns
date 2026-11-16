@@ -1,0 +1,86 @@
+{
+  "timezone": "Europe/Stockholm",
+  "db": "/agent/repos/fonsterfaktor-campaigns/data/campaigns.sqlite",
+  "scheduled": {
+    "facebook_page": {
+      "id": "pub_9209695f-24b9-4e19-ae06-c858b2f1f76b",
+      "scheduledAtStockholm": "2026-11-16 11:00:00",
+      "statusAfterSuccess": "published",
+      "confirmationKind": "test",
+      "postUrl": "https://example.test/posts/test_facebook_page_pub_9209",
+      "attempts": [
+        "success"
+      ]
+    },
+    "instagram": {
+      "id": "pub_87e1f9a4-8b36-4719-a6c5-32c78bac3c20",
+      "scheduledAtStockholm": "2026-11-16 15:30:00",
+      "statusAfterFailure": "failed",
+      "statusAfterRetry": "published",
+      "confirmationKind": "test",
+      "attempts": [
+        "success",
+        "failure"
+      ]
+    },
+    "manual": {
+      "id": "pub_7e0bfae6-bae5-40db-8637-21ed64895d61",
+      "package": {
+        "headline": "Svart skjutparti – mer ljus, mer yta",
+        "campaignLinkUrl": "http://localhost:3000/r/lnk_198e09cf-8342-4153-86a5-5720bc42fab3",
+        "materials": [
+          {
+            "title": "Svart skjutparti – fasad",
+            "kind": "image",
+            "url": "/demo/svart-skjutparti-fasad.jpg"
+          },
+          {
+            "title": "Svart skjutparti – öppning",
+            "kind": "video",
+            "url": "/demo/svart-skjutparti-open.mp4"
+          }
+        ],
+        "copyTextChars": 212
+      }
+    },
+    "ambiguousFlow": {
+      "id": "pub_643c4198-488f-4d2b-89a5-557ef780531f",
+      "ambiguousOutcome": "ambiguous",
+      "blockedRetry": "Send blocked: last result was ambiguous — call reconcile before retry to avoid duplicates",
+      "reconcileMessage": "Reconcile found existing post — marked published, do not resend",
+      "safeToRetryWas": false,
+      "finalStatus": "published"
+    }
+  },
+  "metaChannelStatus": [
+    {
+      "channel": "facebook_page",
+      "status": "blocked_missing_credentials",
+      "day1Priority": true,
+      "requirements": [
+        "Facebook Page access token (server-only)",
+        "Permission pages_manage_posts",
+        "Permission pages_read_engagement",
+        "Permission pages_show_list",
+        "User task CREATE_CONTENT on the Page",
+        "POST /{page-id}/feed with message and/or link",
+        "Live sends only when META_ALLOW_LIVE_SENDS=true and META_TEST_ACCOUNT_LABEL is set"
+      ],
+      "notes": "No META_PAGE_ID / META_PAGE_ACCESS_TOKEN on server. Connected mode returns a clear blocked error; use test or manual mode."
+    },
+    {
+      "channel": "instagram",
+      "status": "blocked_missing_credentials",
+      "day1Priority": false,
+      "requirements": [
+        "Instagram professional account linked to a Facebook Page",
+        "Permissions instagram_basic + instagram_content_publish (+ pages_read_engagement for FB Login path)",
+        "Two-step publish: POST /{ig-user-id}/media then POST /{ig-user-id}/media_publish",
+        "Publicly reachable image_url / video_url (Meta CURL fetch)",
+        "Page Publishing Authorization if the linked Page requires PPA",
+        "Rate limit: 100 API publishes / 24h rolling"
+      ],
+      "notes": "Day-1 scope: integration code prepared, but live Instagram publishes are out of testable scope until a professional IG account linked to the designated test Page is available and verified. Do not treat Instagram as day-1 acceptance."
+    }
+  ]
+}

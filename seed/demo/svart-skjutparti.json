@@ -1,0 +1,66 @@
+{
+  "campaign": {
+    "slug": "svart-skjutparti",
+    "name": "Svart skjutparti",
+    "product": "Drutex skjutparti – svart",
+    "goal": "Öka prisvisningar och förfrågningar i Sverige",
+    "destinationUrl": "https://example.test/konfigurator?product=skjutparti&finish=svart&campaign=svart-skjutparti",
+    "market": "SE",
+    "region": "Sverige",
+    "status": "ready",
+    "startsAt": "2026-11-16T00:00:00.000Z",
+    "endsAt": "2026-12-31T23:59:59.000Z",
+    "isDemo": true
+  },
+  "materials": [
+    {
+      "kind": "image",
+      "title": "Svart skjutparti – fasad",
+      "url": "/demo/svart-skjutparti-fasad.jpg",
+      "mimeType": "image/jpeg",
+      "width": 1600,
+      "height": 900,
+      "sortOrder": 0
+    },
+    {
+      "kind": "video",
+      "title": "Svart skjutparti – öppning",
+      "url": "/demo/svart-skjutparti-open.mp4",
+      "mimeType": "video/mp4",
+      "durationSec": 18,
+      "sortOrder": 1
+    }
+  ],
+  "contentVariants": [
+    {
+      "locale": "sv-SE",
+      "channelHint": "meta",
+      "label": "A",
+      "headline": "Svart skjutparti – mer ljus, mer yta",
+      "body": "Konfigurera ditt Drutex skjutparti i svart finish. Se pris direkt och skicka förfrågan.",
+      "cta": "Öppna konfiguratorn",
+      "status": "approved"
+    },
+    {
+      "locale": "sv-SE",
+      "channelHint": "google",
+      "label": "B",
+      "headline": "Drutex skjutparti i svart – pris online",
+      "body": "Testa mått och glasval i konfiguratorn. Demo-kampanj för FönsterFaktor Sverige.",
+      "cta": "Beräkna pris",
+      "status": "draft"
+    }
+  ],
+  "publication": {
+    "channel": "manual",
+    "status": "draft",
+    "label": "Demo draft placement"
+  },
+  "link": {
+    "label": "Demo tagged link",
+    "utmSource": "fonsterfaktor-campaigns",
+    "utmMedium": "demo",
+    "utmCampaign": "svart-skjutparti",
+    "utmContent": "variant-a"
+  }
+}
