@@ -1,6 +1,14 @@
 # FönsterFaktor Campaigns
 
-Internal panel to create, publish, and analyze Drutex product campaigns sold in Sweden. DIN Next is an external traffic destination only — this repository does not modify the konfigurator.
+Internal panel to create, publish, and analyze Drutex product campaigns sold in Sweden.
+
+## Publications (agent 3)
+
+- UI: `/publications` and `/publications/[campaignId]` — calendar in **Europe/Stockholm**
+- Modes: `manual` (copy package + save post URL), `test` (simulate success/failure/ambiguous), `connected` (Meta Graph API, server tokens only)
+- Ambiguous sends require `POST /api/publications/:id/reconcile` before retry
+- Channel status: `GET /api/meta/status` — Facebook Page day-1; Instagram prepared but out of day-1 test scope without a professional IG account
+- Acceptance: `npm run test:acceptance:publications` · unit: `npm test` DIN Next is an external traffic destination only — this repository does not modify the konfigurator.
 
 ## Stack
 
