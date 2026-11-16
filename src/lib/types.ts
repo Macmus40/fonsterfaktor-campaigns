@@ -104,7 +104,17 @@ export interface Material {
   createdAt: string;
 }
 
-export interface ImageExtendedContent {
+/** Creative fields shared by image and video posts. All optional for older rows. */
+export interface PostCreativeFields {
+  /** Short advertising slogan. Channel previews use this as the ad headline. */
+  slogan?: string;
+  /** Hashtags including the leading #, in display order. */
+  hashtags?: string[];
+  /** Ordered material ids for this post's carousel. Falls back to materialId. */
+  slideIds?: string[];
+}
+
+export interface ImageExtendedContent extends PostCreativeFields {
   kind: "image";
   headline: string;
   postText: string;
@@ -112,7 +122,7 @@ export interface ImageExtendedContent {
   cta: string;
 }
 
-export interface VideoExtendedContent {
+export interface VideoExtendedContent extends PostCreativeFields {
   kind: "video";
   opening: string;
   overlaySequence: string[];

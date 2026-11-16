@@ -16,6 +16,7 @@ import type {
   MaterialKind,
 } from "@/lib/types";
 import {
+  flattenExtended,
   generateProposals,
   type GenerateInput,
   type GeneratedProposal,
@@ -371,23 +372,10 @@ export function updateVariant(
     : existing.extendedJson;
 
   if (patch.extended) {
-    if (patch.extended.kind === "image") {
-      headline = patch.headline ?? patch.extended.headline;
-      body = patch.body ?? patch.extended.postText;
-      cta = patch.cta !== undefined ? patch.cta : patch.extended.cta;
-    } else {
-      headline = patch.headline ?? patch.extended.opening;
-      body =
-        patch.body ??
-        [
-          patch.extended.narration,
-          "",
-          "Textsekvens:",
-          ...patch.extended.overlaySequence.map((t, i) => `${i + 1}. ${t}`),
-          "",
-          patch.extended.publicationDescription,
-        ].join("\n");
-    }
+    const flat = flattenExtended(patch.extended, cta ?? "");
+    headline = patch.headline ?? flat.headline;
+    body = patch.body ?? flat.body;
+    cta = patch.cta !== undefined ? patch.cta : flat.cta || null;
   }
 
   const ts = nowIso();

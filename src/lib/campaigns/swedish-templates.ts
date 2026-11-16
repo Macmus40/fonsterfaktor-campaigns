@@ -1,5 +1,6 @@
 /** Local Swedish copy templates + tag fillers. No paid API. */
 
+import { channelCaption, defaultHashtags } from "@/lib/campaigns/post-copy";
 import type {
   CampaignContext,
   ContentAngle,
@@ -112,6 +113,8 @@ function buildImagePrice(input: GenerateInput, missing: string[]): ExtendedConte
   return {
     kind: "image",
     headline,
+    slogan: headline,
+    hashtags: defaultHashtags(input.product, "price_custom"),
     postText,
     carouselCaptions,
     cta: ctaText(input.context, input.destinationUrl),
@@ -151,6 +154,8 @@ function buildImageSeason(input: GenerateInput, _missing: string[]): ExtendedCon
   return {
     kind: "image",
     headline,
+    slogan: headline,
+    hashtags: defaultHashtags(input.product, "season_problem"),
     postText,
     carouselCaptions,
     cta: ctaText(input.context, input.destinationUrl),
@@ -162,6 +167,11 @@ function buildVideoPrice(input: GenerateInput, _missing: string[]): ExtendedCont
   const price = input.context?.priceText?.trim();
   const scenes = input.sceneNotes?.trim();
   const desc = input.userDescription?.trim();
+
+  const slogan = clean([
+    input.product,
+    price ? `från ${price}` : "i eget mått",
+  ]);
 
   const opening = clean([
     "Öppning:",
@@ -197,6 +207,8 @@ function buildVideoPrice(input: GenerateInput, _missing: string[]): ExtendedCont
   return {
     kind: "video",
     opening,
+    slogan,
+    hashtags: defaultHashtags(input.product, "price_custom"),
     overlaySequence,
     narration,
     publicationDescription,
@@ -209,6 +221,12 @@ function buildVideoSeason(input: GenerateInput, _missing: string[]): ExtendedCon
   const feats = featureList(input.context);
   const scenes = input.sceneNotes?.trim();
   const desc = input.userDescription?.trim();
+
+  const slogan = clean([
+    weather ? `${weather.charAt(0).toUpperCase() + weather.slice(1)} ute` : "Kyla ute",
+    "– ljus inne med",
+    input.product,
+  ]);
 
   const opening = clean([
     "Öppning:",
@@ -241,34 +259,37 @@ function buildVideoSeason(input: GenerateInput, _missing: string[]): ExtendedCon
   return {
     kind: "video",
     opening,
+    slogan,
+    hashtags: defaultHashtags(input.product, "season_problem"),
     overlaySequence,
     narration,
     publicationDescription,
   };
 }
 
-function flatten(extended: ExtendedContent, ctaFallback: string): {
+export function flattenExtended(extended: ExtendedContent, ctaFallback: string): {
   headline: string;
   body: string;
   cta: string;
 } {
   if (extended.kind === "image") {
     return {
-      headline: extended.headline,
-      body: extended.postText,
+      headline: extended.slogan?.trim() || extended.headline,
+      body: channelCaption(extended.postText, extended.hashtags ?? []),
       cta: extended.cta || ctaFallback,
     };
   }
+  const script = [
+    extended.narration,
+    "",
+    "Textsekvens:",
+    ...extended.overlaySequence.map((t, i) => `${i + 1}. ${t}`),
+    "",
+    extended.publicationDescription,
+  ].join("\n");
   return {
-    headline: extended.opening,
-    body: [
-      extended.narration,
-      "",
-      "Textsekvens:",
-      ...extended.overlaySequence.map((t, i) => `${i + 1}. ${t}`),
-      "",
-      extended.publicationDescription,
-    ].join("\n"),
+    headline: extended.slogan?.trim() || extended.opening,
+    body: channelCaption(script, extended.hashtags ?? []),
     cta: ctaFallback,
   };
 }
@@ -316,7 +337,10 @@ export async function tryLocalModelPolish(
     if (!extended || (extended.kind !== "image" && extended.kind !== "video")) {
       return null;
     }
-    const flat = flatten(extended, draft.cta || ctaText(input.context, input.destinationUrl));
+    const flat = flattenExtended(
+      extended,
+      draft.cta || ctaText(input.context, input.destinationUrl),
+    );
     return {
       ...draft,
       ...flat,
@@ -353,8 +377,8 @@ export function generateTemplateProposals(
       ? buildImageSeason(input, missing)
       : buildVideoSeason(input, missing);
 
-  const priceFlat = flatten(priceExtended, cta);
-  const seasonFlat = flatten(seasonExtended, cta);
+  const priceFlat = flattenExtended(priceExtended, cta);
+  const seasonFlat = flattenExtended(seasonExtended, cta);
 
   return [
     {

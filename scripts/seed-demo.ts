@@ -162,7 +162,12 @@ async function main() {
         extendedJson: JSON.stringify({
           kind: "image",
           headline: v.headline,
+          slogan: v.headline,
           postText: v.body,
+          hashtags:
+            v.label === "A"
+              ? ["#fönster", "#skjutparti", "#egetmått", "#drutex", "#fönsterfaktor"]
+              : ["#fönster", "#energieffektivt", "#hemma", "#renovering", "#drutex"],
           carouselCaptions: [
             v.headline,
             "Eget mått",
