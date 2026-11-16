@@ -24,7 +24,19 @@ npm run seed:demo
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) or [http://localhost:3000/campaigns](http://localhost:3000/campaigns) for authoring.
+
+### Content generation (agent 2)
+
+Swedish proposals use **local templates + tags** (no paid API). Optional local model:
+
+```bash
+export LOCAL_LLM_URL=http://127.0.0.1:11434/api/generate
+export LOCAL_LLM_MODEL=llama3.2
+export LOCAL_MATERIAL_ANALYSIS=1  # optional provenance tag
+```
+
+Demo assets: `public/demo/svart-skjutparti-fasad.jpg`, `public/demo/svart-skjutparti-open.mp4`. Limitations: `docs/content-flow-limitations.md`.
 
 ### DIN Next simulator
 

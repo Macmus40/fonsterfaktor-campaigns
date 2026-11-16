@@ -40,6 +40,20 @@ export default function HomePage() {
           endast extern trafikdestination. Inga Meta-konton eller betal-API:er
           krävs lokalt.
         </p>
+        <p className="flex flex-wrap gap-2">
+          <a
+            href="/campaigns"
+            className="inline-flex rounded-md bg-cyan-800 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-900"
+          >
+            Kampanjförfattande
+          </a>
+          <a
+            href="/publications"
+            className="inline-flex rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium hover:bg-stone-50"
+          >
+            Publikationer
+          </a>
+        </p>
       </section>
 
       <section className="space-y-3">
@@ -80,7 +94,14 @@ export default function HomePage() {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="font-medium">{c.name}</p>
+                      <p className="font-medium">
+                        <a
+                          className="text-cyan-900 underline-offset-2 hover:underline"
+                          href={`/campaigns/${c.id}`}
+                        >
+                          {c.name}
+                        </a>
+                      </p>
                       <p className="text-sm text-stone-500">
                         {c.product} · {c.market}
                         {c.region ? ` / ${c.region}` : ""} · status{" "}

@@ -1,47 +1,54 @@
 import { NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
-import { getDb } from "@/lib/db/client";
 import {
-  campaigns,
-  contentVariants,
-  links,
-  materials,
-  publications,
-} from "@/lib/db/schema";
+  createCampaign,
+  listCampaigns,
+  getCampaignBundle,
+} from "@/lib/campaigns/repository";
+import type { CampaignContext } from "@/lib/types";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const db = getDb();
-  const rows = db
-    .select()
-    .from(campaigns)
-    .orderBy(desc(campaigns.createdAt))
-    .all();
+  const rows = listCampaigns();
+  const campaigns = rows.map((c) => getCampaignBundle(c.id)!);
+  return NextResponse.json({ campaigns });
+}
 
-  const result = rows.map((c) => ({
-    ...c,
-    materials: db
-      .select()
-      .from(materials)
-      .where(eq(materials.campaignId, c.id))
-      .all(),
-    contentVariants: db
-      .select()
-      .from(contentVariants)
-      .where(eq(contentVariants.campaignId, c.id))
-      .all(),
-    publications: db
-      .select()
-      .from(publications)
-      .where(eq(publications.campaignId, c.id))
-      .all()
-      .map((p) => ({
-        ...p,
-        materialIds: JSON.parse(p.materialIdsJson || "[]") as string[],
-      })),
-    links: db.select().from(links).where(eq(links.campaignId, c.id)).all(),
-  }));
+export async function POST(req: Request) {
+  const body = (await req.json()) as {
+    name?: string;
+    product?: string;
+    goal?: string;
+    destinationUrl?: string;
+    market?: string;
+    region?: string | null;
+    context?: CampaignContext;
+    isDemo?: boolean;
+    slug?: string;
+  };
 
-  return NextResponse.json({ campaigns: result });
+  if (!body.name?.trim() || !body.product?.trim() || !body.goal?.trim()) {
+    return NextResponse.json(
+      { error: "name, product and goal are required" },
+      { status: 400 },
+    );
+  }
+
+  const destinationUrl =
+    body.destinationUrl?.trim() ||
+    "https://example.test/konfigurator?campaign=new";
+
+  const bundle = createCampaign({
+    name: body.name,
+    product: body.product,
+    goal: body.goal,
+    destinationUrl,
+    market: body.market,
+    region: body.region,
+    context: body.context,
+    isDemo: body.isDemo,
+    slug: body.slug,
+  });
+
+  return NextResponse.json(bundle, { status: 201 });
 }

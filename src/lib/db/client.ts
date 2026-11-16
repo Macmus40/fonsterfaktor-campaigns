@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS campaigns (
   status TEXT NOT NULL DEFAULT 'draft',
   starts_at TEXT,
   ends_at TEXT,
+  context_json TEXT,
+  planning_ready_at TEXT,
   is_demo INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -39,18 +41,25 @@ CREATE TABLE IF NOT EXISTS materials (
   height INTEGER,
   duration_sec REAL,
   sort_order INTEGER NOT NULL DEFAULT 0,
+  user_description TEXT,
+  scene_notes TEXT,
   created_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS content_variants (
   id TEXT PRIMARY KEY,
   campaign_id TEXT NOT NULL REFERENCES campaigns(id),
+  material_id TEXT,
   locale TEXT NOT NULL DEFAULT 'sv-SE',
   channel_hint TEXT,
   headline TEXT NOT NULL,
   body TEXT NOT NULL,
   cta TEXT,
   label TEXT NOT NULL,
+  angle TEXT NOT NULL DEFAULT 'custom',
+  generation_source TEXT NOT NULL DEFAULT 'template',
+  extended_json TEXT NOT NULL DEFAULT '{}',
+  missing_fields_json TEXT NOT NULL DEFAULT '[]',
   status TEXT NOT NULL DEFAULT 'draft',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -145,7 +154,7 @@ CREATE TABLE IF NOT EXISTS measurements (
 );
 `;
 
-/** Additive migrations for DBs created by the skeleton before agent 3 columns. */
+/** Additive migrations for DBs created before agent 2/3 columns. */
 const MIGRATIONS = [
   `ALTER TABLE publications ADD COLUMN scheduled_at TEXT`,
   `ALTER TABLE publications ADD COLUMN publish_mode TEXT NOT NULL DEFAULT 'manual'`,
@@ -153,6 +162,15 @@ const MIGRATIONS = [
   `ALTER TABLE publications ADD COLUMN post_url TEXT`,
   `ALTER TABLE publications ADD COLUMN campaign_link_id TEXT`,
   `ALTER TABLE publications ADD COLUMN last_attempt_id TEXT`,
+  `ALTER TABLE campaigns ADD COLUMN context_json TEXT`,
+  `ALTER TABLE campaigns ADD COLUMN planning_ready_at TEXT`,
+  `ALTER TABLE materials ADD COLUMN user_description TEXT`,
+  `ALTER TABLE materials ADD COLUMN scene_notes TEXT`,
+  `ALTER TABLE content_variants ADD COLUMN material_id TEXT`,
+  `ALTER TABLE content_variants ADD COLUMN angle TEXT NOT NULL DEFAULT 'custom'`,
+  `ALTER TABLE content_variants ADD COLUMN generation_source TEXT NOT NULL DEFAULT 'template'`,
+  `ALTER TABLE content_variants ADD COLUMN extended_json TEXT NOT NULL DEFAULT '{}'`,
+  `ALTER TABLE content_variants ADD COLUMN missing_fields_json TEXT NOT NULL DEFAULT '[]'`,
 ];
 
 function columnExists(db: Database.Database, table: string, column: string) {
