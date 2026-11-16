@@ -1,0 +1,85 @@
+{
+  "campaign": {
+    "slug": "svart-skjutparti",
+    "name": "Svart skjutparti",
+    "product": "Drutex skjutparti – svart",
+    "goal": "Öka prisvisningar och förfrågningar i Sverige",
+    "destinationUrl": "https://example.test/konfigurator?product=skjutparti&finish=svart&campaign=svart-skjutparti",
+    "market": "SE",
+    "region": "Sverige",
+    "status": "active",
+    "startsAt": "2026-11-16T00:00:00.000Z",
+    "endsAt": "2026-12-31T23:59:59.000Z",
+    "isDemo": true
+  },
+  "materials": [
+    {
+      "kind": "image",
+      "title": "Foto A – fasad",
+      "url": "/demo/svart-skjutparti-fasad.jpg",
+      "mimeType": "image/jpeg",
+      "width": 1600,
+      "height": 900,
+      "sortOrder": 0
+    },
+    {
+      "kind": "image",
+      "title": "Foto B – interiör",
+      "url": "/demo/svart-skjutparti-interior.jpg",
+      "mimeType": "image/jpeg",
+      "width": 1600,
+      "height": 900,
+      "sortOrder": 1
+    }
+  ],
+  "contentVariants": [
+    {
+      "locale": "sv-SE",
+      "channelHint": "meta",
+      "label": "A",
+      "headline": "Svart skjutparti – mer ljus, mer yta",
+      "body": "Konfigurera ditt Drutex skjutparti i svart finish. Se pris direkt och skicka förfrågan.",
+      "cta": "Öppna konfiguratorn",
+      "status": "approved"
+    },
+    {
+      "locale": "sv-SE",
+      "channelHint": "meta",
+      "label": "B",
+      "headline": "Mörka dagar? Öppna mot ljuset med svart skjutparti",
+      "body": "Säsongsproblem: mindre dagsljus. Testa mått och glasval – beräkna pris online.",
+      "cta": "Beräkna pris",
+      "status": "approved"
+    }
+  ],
+  "publications": [
+    {
+      "channel": "meta",
+      "status": "published",
+      "variantLabel": "A",
+      "materialIndex": 0,
+      "label": "Post foto A",
+      "link": {
+        "label": "Link post A",
+        "utmSource": "meta",
+        "utmMedium": "social",
+        "utmCampaign": "svart-skjutparti",
+        "utmContent": "photo-a"
+      }
+    },
+    {
+      "channel": "meta",
+      "status": "published",
+      "variantLabel": "B",
+      "materialIndex": 1,
+      "label": "Post foto B",
+      "link": {
+        "label": "Link post B",
+        "utmSource": "meta",
+        "utmMedium": "social",
+        "utmCampaign": "svart-skjutparti",
+        "utmContent": "photo-b"
+      }
+    }
+  ]
+}
