@@ -256,4 +256,4 @@ Legenda: **działa** | **działa w trybie testowym** | **jest w kodzie, ale wyma
 - Branch: `audit/project-status`
 - Plik: [`docs/PROJECT_STATUS.md`](./PROJECT_STATUS.md)
 - Link: https://github.com/Macmus40/fonsterfaktor-campaigns/blob/audit/project-status/docs/PROJECT_STATUS.md
-- Potwierdzony tip `origin/audit/project-status`: `4c0949537b9bac30e50bc76ae3cf904d9b896512` (przed tą aktualizacją SHA; po commitcie z tym akapitem tip się przesunie)
+- Potwierdzony tip `origin/audit/project-status`: `d9b63bbb207cfaf509489b3a18baeae83854139e`
