@@ -43,6 +43,12 @@ export default function RootLayout({
               <a className="hover:text-stone-900" href="/publications">
                 Publikacje
               </a>
+              <a className="hover:text-stone-900" href="/login">
+                Login
+              </a>
+              <a className="hover:text-stone-900" href="/setup">
+                Setup
+              </a>
               <a className="hover:text-stone-900" href="/docs-hint">
                 Kontrakt
               </a>

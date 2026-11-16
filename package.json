@@ -11,9 +11,13 @@
     "simulate:din-next": "tsx scripts/simulate-din-next.ts",
     "test": "tsx --test tests/**/*.test.ts",
     "test:acceptance:publications": "tsx scripts/acceptance-publications.ts",
-    "db:path": "node -e \"console.log(require('path').join(process.cwd(),'data/campaigns.sqlite'))\""
+    "db:path": "node -e \"console.log(require('path').join(process.cwd(),'data/campaigns.sqlite'))\"",
+    "jobs:publish-due": "tsx scripts/jobs-publish-due.ts",
+    "probe:foundation": "tsx scripts/probe-foundation.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
     "better-sqlite3": "^13.2.0",
     "drizzle-orm": "^0.45.4",
     "next": "^16.4.6",

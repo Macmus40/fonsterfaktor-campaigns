@@ -1,0 +1,15 @@
+{
+  "note": "Re-run with: npm run probe:foundation",
+  "withoutSupabase": {
+    "missing": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "probes": {
+      "zapis_kampanii_po_restarcie": "blocked until Supabase configured (sqlite escape hatch works with STORAGE_DRIVER=sqlite)",
+      "dodanie_pliku": "blocked — needs Supabase Storage bucket campaign-media from migration",
+      "dostep_panelu_po_zalogowaniu": "blocked — needs Auth user + anon URL/key"
+    }
+  }
+}
