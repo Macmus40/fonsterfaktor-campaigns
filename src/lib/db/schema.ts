@@ -12,6 +12,8 @@ export const campaigns = sqliteTable("campaigns", {
   status: text("status").notNull().default("draft"),
   startsAt: text("starts_at"),
   endsAt: text("ends_at"),
+  contextJson: text("context_json"),
+  planningReadyAt: text("planning_ready_at"),
   isDemo: integer("is_demo", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
@@ -30,6 +32,8 @@ export const materials = sqliteTable("materials", {
   height: integer("height"),
   durationSec: real("duration_sec"),
   sortOrder: integer("sort_order").notNull().default(0),
+  userDescription: text("user_description"),
+  sceneNotes: text("scene_notes"),
   createdAt: text("created_at").notNull(),
 });
 
@@ -38,12 +42,17 @@ export const contentVariants = sqliteTable("content_variants", {
   campaignId: text("campaign_id")
     .notNull()
     .references(() => campaigns.id),
+  materialId: text("material_id"),
   locale: text("locale").notNull().default("sv-SE"),
   channelHint: text("channel_hint"),
   headline: text("headline").notNull(),
   body: text("body").notNull(),
   cta: text("cta"),
   label: text("label").notNull(),
+  angle: text("angle").notNull().default("custom"),
+  generationSource: text("generation_source").notNull().default("template"),
+  extendedJson: text("extended_json").notNull().default("{}"),
+  missingFieldsJson: text("missing_fields_json").notNull().default("[]"),
   status: text("status").notNull().default("draft"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),

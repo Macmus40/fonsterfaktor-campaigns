@@ -40,8 +40,11 @@ export default function RootLayout({
               <a className="hover:text-stone-900" href="/">
                 Översikt
               </a>
+              <a className="hover:text-stone-900" href="/campaigns">
+                Kampanjer
+              </a>
               <a className="hover:text-stone-900" href="/publications">
-                Publikacje
+                Publikationer
               </a>
               <a className="hover:text-stone-900" href="/docs-hint">
                 Kontrakt
